@@ -17,7 +17,7 @@
         Dim Label As String
         Dim typeGUID As String
         'Dim typeCode As String
-        Dim size As Int64
+        'Dim size As Int64
         Dim sparsed As Boolean
         Dim bootable As Boolean
         Dim isReadOnly As Boolean

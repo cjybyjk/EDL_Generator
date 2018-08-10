@@ -87,7 +87,6 @@
                     .sparsed = False
                     If .backupIt And (tmp_g_result(6) = "8300" Or tmp_g_result(6) = "0700") Then .sparsed = True
                     .isReadOnly = selectReadOnly(.Label)
-                    .size = (Convert.ToInt64(tmp_g_result(3)) - Convert.ToInt64(tmp_g_result(2)) + 1) * sectorSize / 1024
                     strRuncmdVerbose = RunCommand(adbExe, "shell sgdisk --info=" & i - flagStartAdd + 1 & " " & disk)
                     AddLogInvoke(strRuncmdVerbose, "V")
                     .typeGUID = CutStr(strRuncmdVerbose, "Partition GUID code: ", " (")
@@ -165,7 +164,7 @@ pEnd1:
                 .WriteStartElement("partition")
                 If part(i).Label <> part(i).newLabel Then AddLogInvoke("分区" & i + 1 & " " & part(i).Label & " -> " & part(i).newLabel, "D")
                 .WriteAttributeString("label", part(i).newLabel)
-                .WriteAttributeString("size_in_kb", Math.Round(part(i).size, 1))
+                .WriteAttributeString("size_in_kb", Math.Round((part(i).end_Sector - part(i).start_Sector + 1) * sectorSize / 1024, 1))
                 .WriteAttributeString("type", part(i).typeGUID)
                 .WriteAttributeString("bootable", LCase(part(i).bootable))
                 .WriteAttributeString("readonly", LCase(part(i).isReadOnly))
