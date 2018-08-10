@@ -37,6 +37,7 @@ Partial Class frm_EditPartConf
         Me.colReadonly = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.colDel = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.lbl_Tip = New System.Windows.Forms.Label()
+        Me.btn_AddPart = New System.Windows.Forms.Button()
         CType(Me.data_Part, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -150,11 +151,21 @@ Partial Class frm_EditPartConf
         Me.lbl_Tip.TabIndex = 4
         Me.lbl_Tip.Text = "点击列表项以查看详细说明"
         '
+        'btn_AddPart
+        '
+        Me.btn_AddPart.Location = New System.Drawing.Point(549, 337)
+        Me.btn_AddPart.Name = "btn_AddPart"
+        Me.btn_AddPart.Size = New System.Drawing.Size(68, 22)
+        Me.btn_AddPart.TabIndex = 5
+        Me.btn_AddPart.Text = "新增分区"
+        Me.btn_AddPart.UseVisualStyleBackColor = True
+        '
         'frm_EditPartConf
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(629, 371)
+        Me.Controls.Add(Me.btn_AddPart)
         Me.Controls.Add(Me.lbl_Tip)
         Me.Controls.Add(Me.data_Part)
         Me.Controls.Add(Me.btn_Save)
@@ -183,4 +194,5 @@ Partial Class frm_EditPartConf
     Friend WithEvents colBootable As DataGridViewCheckBoxColumn
     Friend WithEvents colReadonly As DataGridViewCheckBoxColumn
     Friend WithEvents colDel As DataGridViewCheckBoxColumn
+    Friend WithEvents btn_AddPart As Button
 End Class

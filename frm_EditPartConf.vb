@@ -27,6 +27,7 @@ Public Class frm_EditPartConf
 
     Private Sub btn_Save_Click(sender As Object, e As EventArgs) Handles btn_Save.Click
         Dim i As Int32, j As Int32
+        ReDim Preserve part(data_Part.RowCount - 1)
         For i = 0 To UBound(part)
             With data_Part.Rows(i)
                 j = Convert.ToInt32(.Cells(0).Value) - 1
@@ -72,4 +73,23 @@ Public Class frm_EditPartConf
         End Select
     End Sub
 
+    Private Sub btn_AddPart_Click(sender As Object, e As EventArgs) Handles btn_AddPart.Click
+        Dim i As Int64 = data_Part.RowCount
+        data_Part.Rows.Add()
+        With data_Part.Rows(i)
+            .Cells(0).Value = i + 1
+            .Cells(1).Value = "NewPart"
+            .Cells(2).Value = "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+            .Cells(3).Value = False
+            .Cells(3).ReadOnly = True
+            .Cells(4).Value = False
+            .Cells(5).Value = False
+            .Cells(5).ReadOnly = True
+            .Cells(6).Value = 0
+            .Cells(7).Value = 0
+            .Cells(8).Value = False
+            .Cells(9).Value = False
+            .Cells(10).Value = False
+        End With
+    End Sub
 End Class

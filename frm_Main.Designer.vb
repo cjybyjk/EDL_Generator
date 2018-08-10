@@ -35,6 +35,7 @@ Partial Class frm_Main
         Me.txt_Sector = New System.Windows.Forms.TextBox()
         Me.lbl_Sector = New System.Windows.Forms.Label()
         Me.combo_LogLevel = New System.Windows.Forms.ComboBox()
+        Me.lbl_Tip = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'lbl_disk
@@ -56,12 +57,12 @@ Partial Class frm_Main
         '
         'txt_Log
         '
-        Me.txt_Log.Location = New System.Drawing.Point(12, 84)
+        Me.txt_Log.Location = New System.Drawing.Point(11, 102)
         Me.txt_Log.Multiline = True
         Me.txt_Log.Name = "txt_Log"
         Me.txt_Log.ReadOnly = True
         Me.txt_Log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
-        Me.txt_Log.Size = New System.Drawing.Size(556, 258)
+        Me.txt_Log.Size = New System.Drawing.Size(556, 240)
         Me.txt_Log.TabIndex = 5
         Me.txt_Log.Text = "EDL(9008)线刷包制作工具" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "** 注意：在备份过程中请勿断开连接，关机或重启手机 **" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Author: cjybyjk(cjybyjk@gmai" &
     "l.com) @ coolapk,bilibili,github,tieba,xda-developers" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
@@ -139,11 +140,22 @@ Partial Class frm_Main
         Me.combo_LogLevel.Size = New System.Drawing.Size(62, 20)
         Me.combo_LogLevel.TabIndex = 15
         '
+        'lbl_Tip
+        '
+        Me.lbl_Tip.AutoSize = True
+        Me.lbl_Tip.ForeColor = System.Drawing.SystemColors.HotTrack
+        Me.lbl_Tip.Location = New System.Drawing.Point(12, 84)
+        Me.lbl_Tip.Name = "lbl_Tip"
+        Me.lbl_Tip.Size = New System.Drawing.Size(551, 12)
+        Me.lbl_Tip.TabIndex = 16
+        Me.lbl_Tip.Text = "磁盘路径:使用 ;(半角分号) 分隔. 扇区大小: 对于EMMC,一般是512Bytes ; 对于UFS,一般是4096Bytes"
+        '
         'frm_Main
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(580, 354)
+        Me.Controls.Add(Me.lbl_Tip)
         Me.Controls.Add(Me.combo_LogLevel)
         Me.Controls.Add(Me.lbl_Sector)
         Me.Controls.Add(Me.txt_Sector)
@@ -177,4 +189,5 @@ Partial Class frm_Main
     Friend WithEvents txt_Sector As TextBox
     Friend WithEvents lbl_Sector As Label
     Friend WithEvents combo_LogLevel As ComboBox
+    Friend WithEvents lbl_Tip As Label
 End Class
