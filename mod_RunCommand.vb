@@ -1,7 +1,7 @@
 ﻿Module mod_RunCommand
     Dim txtOut As String = ""
 
-    Function RunCommand(ByVal strProc As String, ByVal strArgs As String) As String
+    Function RunCommandR(ByVal strProc As String, ByVal strArgs As String) As String
         On Error GoTo ErrO
         Dim process As New Process()
         txtOut = ""

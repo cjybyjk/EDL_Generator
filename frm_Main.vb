@@ -39,22 +39,28 @@
         prog.Style = style
     End Sub
 
+    Private Function RunCommand(ByVal strProc As String, ByVal strArgs As String)
+        Dim cmd_result As String = RunCommandR(strProc, strArgs)
+        AddLogInvoke(cmd_result, "V")
+        Return cmd_result
+    End Function
+
     Private Sub RunExec()
         Dim savePath As String = dlg_folder.SelectedPath & "\"
         Dim sectorSize As Int32 = Convert.ToInt32(txt_Sector.Text)
         Dim disk() As String = Split(txt_Disk.Text, ";"), diskNum As Int64
-        Dim strRuncmdVerbose As String
         Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Marquee)
         AddLogInvoke("启动adb服务...")
-        strRuncmdVerbose = RunCommand(adbExe, "kill-server")
-        AddLogInvoke(strRuncmdVerbose, "V")
-        strRuncmdVerbose = RunCommand(adbExe, "start-server")
-        AddLogInvoke(strRuncmdVerbose, "V")
+        RunCommand(adbExe, "kill-server")
+        RunCommand(adbExe, "start-server")
         Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Blocks)
         If InStr(RunCommand(adbExe, "get-state"), "recovery") <= 0 Then
             AddLogInvoke("请连接上设备并重启到recovery模式后再试", "E")
             GoTo pEnd
         End If
+        AddLogInvoke("将sgdisk程序推送到设备中...")
+        RunCommand(adbExe, "push """ & sgdiskBin & """ /tmp")
+        RunCommand(adbExe, "shell """"chmod 0755 /tmp/sgdisk""")
         Dim writer As New Xml.XmlTextWriter(savePath & "partition.xml", System.Text.Encoding.GetEncoding("utf-8"))
         With writer
             .Formatting = Xml.Formatting.Indented
@@ -69,12 +75,10 @@
         End With
         For diskNum = 0 To UBound(disk)
             AddLogInvoke("读取分区信息... 从 " & disk(diskNum))
-            strRuncmdVerbose = RunCommand(adbExe, "shell sgdisk --print " & disk(diskNum))
-            AddLogInvoke(strRuncmdVerbose, "V")
             Dim g_result() As String
             Dim num_gResult As Int32, tmp_g_result() As String, flagStartAdd As Int64 = 0
             ReDim part(0)
-            g_result = Split(strRuncmdVerbose, vbCrLf)
+            g_result = Split(RunCommand(adbExe, "shell /tmp/sgdisk --print " & disk(diskNum)), vbCrLf)
             Me.Invoke(New SetProgD(AddressOf SetProgMax), UBound(g_result))
             For num_gResult = 0 To UBound(g_result)
                 Me.Invoke(New SetProgD(AddressOf SetProg), num_gResult)
@@ -88,21 +92,19 @@
                     With part(num_gResult - flagStartAdd)
                         .start_Sector = Convert.ToInt64(tmp_g_result(2))
                         .end_Sector = Convert.ToInt64(tmp_g_result(3))
-                        '.typeCode = tmp_g_result(6)
                         .Label = tmp_g_result(7)
                         .newLabel = tmp_g_result(7)
-                        .CleanIt = selectClean(.Label)
-                        If .CleanIt Then
-                            .backupIt = False
+                        .bakFile = .Label & ".img"
+                        .backupIt = selectBackup(.Label)
+                        If selectClean(.Label) Then
+                            .bakFile = ""
                         Else
-                            .backupIt = selectBackup(.Label)
+                            .bakFile = .Label & ".img"
                         End If
                         .sparsed = False
                         If .backupIt And (tmp_g_result(6) = "8300" Or tmp_g_result(6) = "0700") Then .sparsed = True
                         .isReadOnly = selectReadOnly(.Label)
-                        strRuncmdVerbose = RunCommand(adbExe, "shell sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum))
-                        AddLogInvoke(strRuncmdVerbose, "V")
-                        .typeGUID = CutStr(strRuncmdVerbose, "Partition GUID code: ", " (")
+                        .typeGUID = CutStr(RunCommand(adbExe, "shell sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum)), "Partition GUID code: ", " (")
                     End With
                     AddLogInvoke("读取到: " & tmp_g_result(1) &
                            " ,Label: " & tmp_g_result(7) &
@@ -125,21 +127,21 @@
             Me.Invoke(New SetProgD(AddressOf SetProgMax), UBound(part))
             Dim i As Int64
             For i = 0 To UBound(part)
-                If part(i).isRemoved Or Not part(i).backupIt Or part(i).CleanIt Then
+                If Not part(i).backupIt Or part(i).bakFile = "" Then
                     AddLogInvoke("跳过 " & part(i).Label, "D")
                     GoTo pEnd1
                 End If
                 AddLogInvoke("备份 " & part(i).Label, "D")
-                strRuncmdVerbose = RunCommand(adbExe,
+                RunCommand(adbExe,
                            "pull /dev/block/bootdevice/by-name/" & part(i).Label & " """ &
                             savePath & part(i).Label & ".img""")
-                AddLogInvoke(strRuncmdVerbose, "V")
+
                 If part(i).sparsed Then
                     AddLogInvoke("尝试稀疏化 " & part(i).Label & ".img", "D")
-                    strRuncmdVerbose = RunCommand(sparseExe,
+                    RunCommand(sparseExe,
                                """" & savePath & "" & part(i).Label & ".img"" """ &
                                savePath & "" & part(i).Label & "_sparse.img""")
-                    AddLogInvoke(strRuncmdVerbose, "V")
+
                     If CheckFile(savePath & "" & part(i).Label & "_sparse.img") Then
                         IO.File.Delete(savePath & "" & part(i).Label & ".img")
                         IO.File.Move(savePath & "" & part(i).Label & "_sparse.img",
@@ -158,23 +160,14 @@ pEnd1:
             With writer
                 .WriteStartElement("physical_partition")
                 For i = 0 To UBound(part)
-                    If part(i).isRemoved Then
-                        AddLogInvoke("分区" & part(i).Label & "已标记为需要被移除, 跳过", "D")
-                        GoTo pEnd2
-                    End If
                     .WriteStartElement("partition")
-                    If part(i).Label <> part(i).newLabel Then AddLogInvoke("分区" & i + 1 & " " & part(i).Label & " -> " & part(i).newLabel, "D")
+                    If part(i).Label <> part(i).newLabel Then AddLogInvoke("分区 " & part(i).Label & " -> " & part(i).newLabel, "D")
                     .WriteAttributeString("label", part(i).newLabel)
                     .WriteAttributeString("size_in_kb", Convert.ToInt64((part(i).end_Sector - part(i).start_Sector + 1) * sectorSize / 1024))
                     .WriteAttributeString("type", part(i).typeGUID)
                     .WriteAttributeString("bootable", LCase(part(i).bootable))
                     .WriteAttributeString("readonly", LCase(part(i).isReadOnly))
-                    If part(i).CleanIt Then
-                        AddLogInvoke("设置为擦除" & part(i).Label & "分区", "D")
-                        .WriteAttributeString("filename", "")
-                    Else
-                        .WriteAttributeString("filename", part(i).Label & ".img")
-                    End If
+                    .WriteAttributeString("filename", part(i).bakFile)
                     .WriteEndElement()
 pEnd2:
                     Me.Invoke(New SetProgD(AddressOf SetProg), i)
@@ -194,8 +187,7 @@ pEnd2:
         Me.Invoke(New SetProgD(AddressOf SetProg), 0)
         For diskNum = 0 To UBound(disk)
             Me.Invoke(New SetProgD(AddressOf SetProg), diskNum)
-            strRuncmdVerbose = RunCommand(pToolExe, "-x """ & savePath & "partition.xml"" -p " & diskNum & " -t """ & Strings.Left(savePath, savePath.Length - 1) & """")
-            AddLogInvoke(strRuncmdVerbose, "V")
+            RunCommand(pToolExe, "-x """ & savePath & "partition.xml"" -p " & diskNum & " -t """ & Strings.Left(savePath, savePath.Length - 1) & """")
         Next
         Me.Invoke(New SetProgD(AddressOf SetProg), 0)
 
@@ -222,7 +214,7 @@ pEnd:
         End If
         If CheckFile(txt_firehose.Text) = False Then
             AddLog("找不到firehose,停止!" & vbCrLf, "E")
-            MsgBox("找不到firehose!", MessageBoxIcon.Error)
+            MsgBox("找不到firehose!", vbCritical + vbSystemModal)
             Exit Sub
         End If
         dlg_folder.ShowDialog()

@@ -2,6 +2,7 @@
     Public adbExe As String = Application.StartupPath & "\tools\adb.exe"
     Public sparseExe As String = Application.StartupPath & "\tools\img2simg.exe"
     Public pToolExe As String = Application.StartupPath & "\tools\ptool.exe"
+    Public sgdiskBin As String = Application.StartupPath & "\tools\sgdisk"
     Public flagPartConf As Boolean = False
     Public part() As Partition
     Public strCleanParts() As String = {"fsc", "ssd", "modemst1", "modemst2", "DDR", "fsg",
@@ -13,17 +14,13 @@
                                       "boot", "recovery", "devinfo", "system", "splash"}
 
     Public Structure Partition
-        'Dim number As Int32
         Dim Label As String
         Dim typeGUID As String
-        'Dim typeCode As String
-        'Dim size As Int64
         Dim sparsed As Boolean
         Dim bootable As Boolean
         Dim isReadOnly As Boolean
-        Dim isRemoved As Boolean
+        Dim bakFile As String
         Dim backupIt As Boolean
-        Dim CleanIt As Boolean
         Dim newLabel As String
         Dim start_Sector As Int64
         Dim end_Sector As Int64

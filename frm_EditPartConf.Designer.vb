@@ -25,19 +25,18 @@ Partial Class frm_EditPartConf
         Me.lbl_Warn = New System.Windows.Forms.Label()
         Me.btn_Save = New System.Windows.Forms.Button()
         Me.data_Part = New System.Windows.Forms.DataGridView()
-        Me.colNum = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colLabel = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colGUID = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colBak = New System.Windows.Forms.DataGridViewCheckBoxColumn()
-        Me.colClean = New System.Windows.Forms.DataGridViewCheckBoxColumn()
+        Me.col_File = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colSparse = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.colSecStart = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colSecEnd = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.colBootable = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.colReadonly = New System.Windows.Forms.DataGridViewCheckBoxColumn()
-        Me.colDel = New System.Windows.Forms.DataGridViewCheckBoxColumn()
         Me.lbl_Tip = New System.Windows.Forms.Label()
         Me.btn_AddPart = New System.Windows.Forms.Button()
+        Me.btn_RemovePart = New System.Windows.Forms.Button()
         CType(Me.data_Part, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -65,21 +64,14 @@ Partial Class frm_EditPartConf
         Me.data_Part.AllowUserToAddRows = False
         Me.data_Part.AllowUserToDeleteRows = False
         Me.data_Part.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing
-        Me.data_Part.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colNum, Me.colLabel, Me.colGUID, Me.colBak, Me.colClean, Me.colSparse, Me.colSecStart, Me.colSecEnd, Me.colBootable, Me.colReadonly, Me.colDel})
+        Me.data_Part.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colLabel, Me.colGUID, Me.colBak, Me.col_File, Me.colSparse, Me.colSecStart, Me.colSecEnd, Me.colBootable, Me.colReadonly})
         Me.data_Part.Location = New System.Drawing.Point(12, 51)
         Me.data_Part.MultiSelect = False
         Me.data_Part.Name = "data_Part"
-        Me.data_Part.RowHeadersVisible = False
+        Me.data_Part.RowHeadersWidth = 20
         Me.data_Part.RowTemplate.Height = 23
         Me.data_Part.Size = New System.Drawing.Size(605, 280)
         Me.data_Part.TabIndex = 3
-        '
-        'colNum
-        '
-        Me.colNum.HeaderText = ""
-        Me.colNum.Name = "colNum"
-        Me.colNum.ReadOnly = True
-        Me.colNum.Width = 22
         '
         'colLabel
         '
@@ -91,7 +83,7 @@ Partial Class frm_EditPartConf
         '
         Me.colGUID.HeaderText = "类型(GUID)"
         Me.colGUID.Name = "colGUID"
-        Me.colGUID.Width = 160
+        Me.colGUID.Width = 140
         '
         'colBak
         '
@@ -99,11 +91,11 @@ Partial Class frm_EditPartConf
         Me.colBak.Name = "colBak"
         Me.colBak.Width = 40
         '
-        'colClean
+        'col_File
         '
-        Me.colClean.HeaderText = "清除"
-        Me.colClean.Name = "colClean"
-        Me.colClean.Width = 40
+        Me.col_File.HeaderText = "文件名"
+        Me.col_File.Name = "col_File"
+        Me.col_File.Width = 80
         '
         'colSparse
         '
@@ -135,12 +127,6 @@ Partial Class frm_EditPartConf
         Me.colReadonly.Name = "colReadonly"
         Me.colReadonly.Width = 40
         '
-        'colDel
-        '
-        Me.colDel.HeaderText = "删除"
-        Me.colDel.Name = "colDel"
-        Me.colDel.Width = 40
-        '
         'lbl_Tip
         '
         Me.lbl_Tip.AutoSize = True
@@ -153,18 +139,28 @@ Partial Class frm_EditPartConf
         '
         'btn_AddPart
         '
-        Me.btn_AddPart.Location = New System.Drawing.Point(549, 337)
+        Me.btn_AddPart.Location = New System.Drawing.Point(475, 337)
         Me.btn_AddPart.Name = "btn_AddPart"
         Me.btn_AddPart.Size = New System.Drawing.Size(68, 22)
         Me.btn_AddPart.TabIndex = 5
-        Me.btn_AddPart.Text = "新增分区"
+        Me.btn_AddPart.Text = "新建分区"
         Me.btn_AddPart.UseVisualStyleBackColor = True
+        '
+        'btn_RemovePart
+        '
+        Me.btn_RemovePart.Location = New System.Drawing.Point(549, 337)
+        Me.btn_RemovePart.Name = "btn_RemovePart"
+        Me.btn_RemovePart.Size = New System.Drawing.Size(68, 22)
+        Me.btn_RemovePart.TabIndex = 6
+        Me.btn_RemovePart.Text = "删除分区"
+        Me.btn_RemovePart.UseVisualStyleBackColor = True
         '
         'frm_EditPartConf
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(629, 371)
+        Me.Controls.Add(Me.btn_RemovePart)
         Me.Controls.Add(Me.btn_AddPart)
         Me.Controls.Add(Me.lbl_Tip)
         Me.Controls.Add(Me.data_Part)
@@ -183,16 +179,15 @@ Partial Class frm_EditPartConf
     Friend WithEvents btn_Save As Button
     Friend WithEvents data_Part As DataGridView
     Friend WithEvents lbl_Tip As Label
-    Friend WithEvents colNum As DataGridViewTextBoxColumn
+    Friend WithEvents btn_AddPart As Button
+    Friend WithEvents btn_RemovePart As Button
     Friend WithEvents colLabel As DataGridViewTextBoxColumn
     Friend WithEvents colGUID As DataGridViewTextBoxColumn
     Friend WithEvents colBak As DataGridViewCheckBoxColumn
-    Friend WithEvents colClean As DataGridViewCheckBoxColumn
+    Friend WithEvents col_File As DataGridViewTextBoxColumn
     Friend WithEvents colSparse As DataGridViewCheckBoxColumn
     Friend WithEvents colSecStart As DataGridViewTextBoxColumn
     Friend WithEvents colSecEnd As DataGridViewTextBoxColumn
     Friend WithEvents colBootable As DataGridViewCheckBoxColumn
     Friend WithEvents colReadonly As DataGridViewCheckBoxColumn
-    Friend WithEvents colDel As DataGridViewCheckBoxColumn
-    Friend WithEvents btn_AddPart As Button
 End Class
