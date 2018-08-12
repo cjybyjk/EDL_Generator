@@ -40,6 +40,7 @@
     End Sub
 
     Private Function RunCommand(ByVal strProc As String, ByVal strArgs As String)
+        AddLogInvoke("执行 " & strProc & " 使用参数 " & strArgs, "V")
         Dim cmd_result As String = RunCommandR(strProc, strArgs)
         AddLogInvoke(cmd_result, "V")
         Return cmd_result
@@ -58,9 +59,11 @@
             AddLogInvoke("请连接上设备并重启到recovery模式后再试", "E")
             GoTo pEnd
         End If
-        AddLogInvoke("将sgdisk程序推送到设备中...")
-        RunCommand(adbExe, "push """ & sgdiskBin & """ /tmp")
-        RunCommand(adbExe, "shell """"chmod 0755 /tmp/sgdisk""")
+        If InStr(RunCommand(adbExe, "shell "" ls /sbin/sgdisk || echo 'no sgdisk' """), "no sgdisk") > 0 Then
+            AddLogInvoke("将sgdisk程序推送到设备中...")
+            RunCommand(adbExe, "push """ & sgdiskBin & """ /sbin")
+            RunCommand(adbExe, "shell ""chmod 0755 /sbin/sgdisk""")
+        End If
         Dim writer As New Xml.XmlTextWriter(savePath & "partition.xml", System.Text.Encoding.GetEncoding("utf-8"))
         With writer
             .Formatting = Xml.Formatting.Indented
@@ -78,7 +81,7 @@
             Dim g_result() As String
             Dim num_gResult As Int32, tmp_g_result() As String, flagStartAdd As Int64 = 0
             ReDim part(0)
-            g_result = Split(RunCommand(adbExe, "shell /tmp/sgdisk --print " & disk(diskNum)), vbCrLf)
+            g_result = Split(RunCommand(adbExe, "shell /sbin/sgdisk --print " & disk(diskNum)), vbCrLf)
             Me.Invoke(New SetProgD(AddressOf SetProgMax), UBound(g_result))
             For num_gResult = 0 To UBound(g_result)
                 Me.Invoke(New SetProgD(AddressOf SetProg), num_gResult)
@@ -237,6 +240,6 @@ pEnd:
     End Sub
 
     Private Sub frm_Main_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        combo_LogLevel.SelectedItem = combo_LogLevel.Items(3)
+        combo_LogLevel.SelectedItem = combo_LogLevel.Items(2)
     End Sub
 End Class
