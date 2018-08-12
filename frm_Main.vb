@@ -93,7 +93,6 @@
                         .start_Sector = Convert.ToInt64(tmp_g_result(2))
                         .end_Sector = Convert.ToInt64(tmp_g_result(3))
                         .Label = tmp_g_result(7)
-                        .newLabel = tmp_g_result(7)
                         .bakFile = .Label & ".img"
                         .backupIt = selectBackup(.Label)
                         If selectClean(.Label) Then
@@ -161,8 +160,7 @@ pEnd1:
                 .WriteStartElement("physical_partition")
                 For i = 0 To UBound(part)
                     .WriteStartElement("partition")
-                    If part(i).Label <> part(i).newLabel Then AddLogInvoke("分区 " & part(i).Label & " -> " & part(i).newLabel, "D")
-                    .WriteAttributeString("label", part(i).newLabel)
+                    .WriteAttributeString("label", part(i).Label)
                     .WriteAttributeString("size_in_kb", Convert.ToInt64((part(i).end_Sector - part(i).start_Sector + 1) * sectorSize / 1024))
                     .WriteAttributeString("type", part(i).typeGUID)
                     .WriteAttributeString("bootable", LCase(part(i).bootable))

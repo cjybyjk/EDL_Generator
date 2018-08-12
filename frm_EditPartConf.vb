@@ -28,7 +28,7 @@ Public Class frm_EditPartConf
         ReDim part(data_Part.RowCount - 1)
         For i = 0 To UBound(part)
             With data_Part.Rows(i)
-                part(i).newLabel = .Cells(0).Value
+                part(i).Label = .Cells(0).Value
                 part(i).typeGUID = .Cells(1).Value
                 part(i).backupIt = .Cells(2).Value
                 part(i).bakFile = .Cells(3).Value

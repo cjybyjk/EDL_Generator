@@ -21,7 +21,6 @@
         Dim isReadOnly As Boolean
         Dim bakFile As String
         Dim backupIt As Boolean
-        Dim newLabel As String
         Dim start_Sector As Int64
         Dim end_Sector As Int64
     End Structure
