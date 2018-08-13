@@ -42,13 +42,13 @@
     Private Function RunCommand(ByVal strProc As String, ByVal strArgs As String)
         AddLogInvoke("执行 " & strProc & " 使用参数 " & strArgs, "V")
         Dim cmd_result As String = RunCommandR(strProc, strArgs)
-        AddLogInvoke(cmd_result, "V")
+        AddLogInvoke("Result: " & vbCrLf & cmd_result, "V")
         Return cmd_result
     End Function
 
     Private Sub RunExec()
         Dim savePath As String = dlg_folder.SelectedPath & "\"
-        Dim sectorSize As Int32 = Convert.ToInt32(txt_Sector.Text)
+        sectorSize = Convert.ToInt64(txt_Sector.Text)
         Dim disk() As String = Split(txt_Disk.Text, ";"), diskNum As Int64
         Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Marquee)
         AddLogInvoke("启动adb服务...")
@@ -61,7 +61,9 @@
         End If
         If InStr(RunCommand(adbExe, "shell "" ls /sbin/sgdisk || echo 'no sgdisk' """), "no sgdisk") > 0 Then
             AddLogInvoke("将sgdisk程序推送到设备中...")
-            RunCommand(adbExe, "push """ & sgdiskBin & """ /sbin")
+            Dim devBit As String = "_arm"
+            If InStr(RunCommand(adbExe, "shell ""getprop ro.product.cpu.abi"""), "arm64") > 0 Then devBit = "_arm64"
+            RunCommand(adbExe, "push """ & sgdiskBin & devBit & """ /sbin/sgdisk")
             RunCommand(adbExe, "shell ""chmod 0755 /sbin/sgdisk""")
         End If
         Dim writer As New Xml.XmlTextWriter(savePath & "partition.xml", System.Text.Encoding.GetEncoding("utf-8"))
@@ -96,12 +98,11 @@
                         .start_Sector = Convert.ToInt64(tmp_g_result(2))
                         .end_Sector = Convert.ToInt64(tmp_g_result(3))
                         .Label = tmp_g_result(7)
-                        .bakFile = .Label & ".img"
-                        .backupIt = selectBackup(.Label)
-                        If selectClean(.Label) Then
-                            .bakFile = ""
+                        .bakFile = selectBackupName(.Label)
+                        If .bakFile = "" Then
+                            .backupIt = False
                         Else
-                            .bakFile = .Label & ".img"
+                            .backupIt = selectBackup(.Label)
                         End If
                         .sparsed = False
                         If .backupIt And (tmp_g_result(6) = "8300" Or tmp_g_result(6) = "0700") Then .sparsed = True
@@ -114,7 +115,10 @@
                 End If
             Next
             Me.Invoke(New SetProgD(AddressOf SetProg), 0)
-
+            If UBound(part) = 0 And part(0).Label = "" Then
+                AddLogInvoke("从磁盘 " & disk(diskNum) & " 读取分区信息失败，终止...", "E")
+                GoTo pEnd
+            End If
             AddLogInvoke("等待分区编辑...")
             Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Marquee)
             flagPartConf = True
@@ -129,27 +133,27 @@
             Me.Invoke(New SetProgD(AddressOf SetProgMax), UBound(part))
             Dim i As Int64
             For i = 0 To UBound(part)
-                If Not part(i).backupIt Or part(i).bakFile = "" Then
+                If Not part(i).backupIt Or part(i).bakFile = "" Or CheckFile(savePath & part(i).bakFile) Then
                     AddLogInvoke("跳过 " & part(i).Label, "D")
                     GoTo pEnd1
                 End If
-                AddLogInvoke("备份 " & part(i).Label, "D")
+                AddLogInvoke("备份 " & part(i).Label & " 到文件 " & part(i).bakFile, "D")
                 RunCommand(adbExe,
                            "pull /dev/block/bootdevice/by-name/" & part(i).Label & " """ &
-                            savePath & part(i).Label & ".img""")
+                            savePath & part(i).bakFile & """")
 
                 If part(i).sparsed Then
-                    AddLogInvoke("尝试稀疏化 " & part(i).Label & ".img", "D")
+                    AddLogInvoke("尝试稀疏化 " & part(i).bakFile, "D")
                     RunCommand(sparseExe,
-                               """" & savePath & "" & part(i).Label & ".img"" """ &
-                               savePath & "" & part(i).Label & "_sparse.img""")
+                               """" & savePath & part(i).bakFile & """ """ &
+                               savePath & part(i).bakFile & ".sparse.img""")
 
-                    If CheckFile(savePath & "" & part(i).Label & "_sparse.img") Then
-                        IO.File.Delete(savePath & "" & part(i).Label & ".img")
-                        IO.File.Move(savePath & "" & part(i).Label & "_sparse.img",
-                                 savePath & "" & part(i).Label & ".img")
+                    If CheckFile(savePath & part(i).bakFile & ".sparse.img") Then
+                        IO.File.Delete(savePath & part(i).bakFile)
+                        IO.File.Move(savePath & part(i).bakFile & ".sparse.img",
+                                 savePath & part(i).bakFile)
                     Else
-                        AddLogInvoke("稀疏化失败 " & part(i).Label & ".img", "W")
+                        AddLogInvoke("稀疏化失败 " & part(i).bakFile, "W")
                         part(i).sparsed = False
                     End If
                 End If
@@ -164,13 +168,12 @@ pEnd1:
                 For i = 0 To UBound(part)
                     .WriteStartElement("partition")
                     .WriteAttributeString("label", part(i).Label)
-                    .WriteAttributeString("size_in_kb", Convert.ToInt64((part(i).end_Sector - part(i).start_Sector + 1) * sectorSize / 1024))
+                    .WriteAttributeString("size_in_kb", (part(i).end_Sector - part(i).start_Sector + 1) * sectorSize \ 1024)
                     .WriteAttributeString("type", part(i).typeGUID)
                     .WriteAttributeString("bootable", LCase(part(i).bootable))
                     .WriteAttributeString("readonly", LCase(part(i).isReadOnly))
                     .WriteAttributeString("filename", part(i).bakFile)
                     .WriteEndElement()
-pEnd2:
                     Me.Invoke(New SetProgD(AddressOf SetProg), i)
                 Next
                 .WriteEndElement()
@@ -198,7 +201,6 @@ pEnd2:
         Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Blocks)
         AddLogInvoke("完成!")
 pEnd:
-
         SyncLock Threading.Thread.CurrentThread
             threadEnd = True
         End SyncLock

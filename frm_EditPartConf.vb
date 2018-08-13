@@ -117,4 +117,20 @@ Public Class frm_EditPartConf
             data_Part.Sort(data_Part.Columns(5), ListSortDirection.Ascending)
         End If
     End Sub
+
+    Private Sub btn_Resize_Click(sender As Object, e As EventArgs) Handles btn_Resize.Click
+        If data_Part.SelectedRows.Count > 0 Then
+            Dim sRow As DataGridViewRow = data_Part.SelectedRows(0)
+            Dim newSize As Int64 = Convert.ToInt64(sRow.Cells(5).Value) +
+                Convert.ToInt64(InputBox("请输入要调整到的大小，单位为KB", "调整大小",
+                    (Convert.ToInt64(sRow.Cells(6).Value) - Convert.ToInt64(sRow.Cells(5).Value) + 1) * sectorSize \ 1024)) * 1024 \ sectorSize - 1
+
+            If newSize >= Convert.ToInt64(data_Part.Rows(sRow.Index + 1).Cells(5).Value) Then
+                MsgBox("错误！没有足够的空闲扇区！", vbCritical + vbSystemModal, "调整大小")
+            Else
+                sRow.Cells(6).Value = newSize
+                data_Part.Sort(data_Part.Columns(5), ListSortDirection.Ascending)
+            End If
+        End If
+    End Sub
 End Class

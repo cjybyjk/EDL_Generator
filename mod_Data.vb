@@ -5,13 +5,20 @@
     Public sgdiskBin As String = Application.StartupPath & "\tools\sgdisk"
     Public flagPartConf As Boolean = False
     Public part() As Partition
-    Public strCleanParts() As String = {"fsc", "ssd", "modemst1", "modemst2", "DDR", "fsg",
-                                        "sec", "devinfo", "userstore", "misc", "keystore", "config",
-                                        "persistent", "dbi", "bk1", "bk2", "bk3", "bk4", "bk5",
-                                        "cache", "apps_log"}
+    Public strPartNames(,) As String = {
+        {"fsc", ""}, {"ssd", ""}, {"modemst1", ""}, {"modemst2", ""}, {"DDR", ""}, {"fsg", ""},
+        {"sec", ""}, {"devinfo", ""}, {"userstore", ""}, {"misc", ""}, {"keystore", ""}, {"config", ""},
+        {"persistent", ""}, {"dbi", ""}, {"cache", ""}, {"apps_log", ""}, {"dpo", ""}, {"apdp", ""},
+        {"msadp", ""}, {"mdtpsecapp", ""}, {"toolsfv", ""}, {"dip", ""}, {"sti", ""}, {"mdtp", ""},
+        {"last_parti", ""}, {"sbl1", "sbl1.mbn"}, {"rpm", "rpm.mbn"}, {"tz", "tz.mbn"}, {"modem", "NON-HLOS.bin"}, {"hyp", "hyp.mbn"},
+        {"aboot", "emmc_appsboot.mbn"}, {"logfs", "logfs_ufs.bin"}, {"xbl", "xbl.elf"}, {"devcfg", "devcfg.mbn"}, {"pmic", "pmic.elf"}, {"keymaster", "keymaster.mbn"},
+        {"cmnlib", "cmnlib.bin"}, {"cmnlib64", "cmnlib64.mbn"}, {"storsec", "storsec.mbn"}, {"bluetooth", "BTFM.bin"}, {"dsp", "adspso.bin"}, {"limits", "dummy.img"}
+    }
+
     Public strNoBakParts() As String = {"userdata"}
     Public strReadOnly() As String = {"modem", "fsg", "DDR", "sec", "aboot", "abootbak",
                                       "boot", "recovery", "devinfo", "system", "splash"}
+    Public sectorSize As Int64
 
     Public Structure Partition
         Dim Label As String
@@ -33,12 +40,13 @@
         Return True
     End Function
 
-    Public Function selectClean(strPartName As String) As Boolean
+    Public Function selectBackupName(strPartName As String) As String
         Dim i As Int32
-        For i = 0 To UBound(strCleanParts)
-            If strPartName = strCleanParts(i) Then Return True
+        If strPartName Like "bk##" Or strPartName Like "bk#" Then Return ""
+        For i = 0 To UBound(strPartNames, 1)
+            If strPartName = strPartNames(i, 0) Or strPartName = strPartNames(i, 0) & "bak" Then Return strPartNames(i, 1)
         Next
-        Return False
+        Return strPartName & ".img"
     End Function
 
     Public Function selectReadOnly(strPartName As String) As Boolean

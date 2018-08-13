@@ -37,6 +37,7 @@ Partial Class frm_EditPartConf
         Me.lbl_Tip = New System.Windows.Forms.Label()
         Me.btn_AddPart = New System.Windows.Forms.Button()
         Me.btn_RemovePart = New System.Windows.Forms.Button()
+        Me.btn_Resize = New System.Windows.Forms.Button()
         CType(Me.data_Part, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -139,7 +140,7 @@ Partial Class frm_EditPartConf
         '
         'btn_AddPart
         '
-        Me.btn_AddPart.Location = New System.Drawing.Point(475, 337)
+        Me.btn_AddPart.Location = New System.Drawing.Point(401, 337)
         Me.btn_AddPart.Name = "btn_AddPart"
         Me.btn_AddPart.Size = New System.Drawing.Size(68, 22)
         Me.btn_AddPart.TabIndex = 5
@@ -155,11 +156,21 @@ Partial Class frm_EditPartConf
         Me.btn_RemovePart.Text = "删除分区"
         Me.btn_RemovePart.UseVisualStyleBackColor = True
         '
+        'btn_Resize
+        '
+        Me.btn_Resize.Location = New System.Drawing.Point(475, 337)
+        Me.btn_Resize.Name = "btn_Resize"
+        Me.btn_Resize.Size = New System.Drawing.Size(68, 22)
+        Me.btn_Resize.TabIndex = 7
+        Me.btn_Resize.Text = "调整大小"
+        Me.btn_Resize.UseVisualStyleBackColor = True
+        '
         'frm_EditPartConf
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(629, 371)
+        Me.Controls.Add(Me.btn_Resize)
         Me.Controls.Add(Me.btn_RemovePart)
         Me.Controls.Add(Me.btn_AddPart)
         Me.Controls.Add(Me.lbl_Tip)
@@ -190,4 +201,5 @@ Partial Class frm_EditPartConf
     Friend WithEvents colSecEnd As DataGridViewTextBoxColumn
     Friend WithEvents colBootable As DataGridViewCheckBoxColumn
     Friend WithEvents colReadonly As DataGridViewCheckBoxColumn
+    Friend WithEvents btn_Resize As Button
 End Class
