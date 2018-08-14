@@ -6,7 +6,7 @@
     Public flagPartConf As Boolean = False
     Public part() As Partition
     Public strPartNames(,) As String = {
-        {"fsc", ""}, {"ssd", ""}, {"modemst1", ""}, {"modemst2", ""}, {"DDR", ""}, {"fsg", ""},
+        {"fsc", ""}, {"ssd", ""}, {"modemst#", ""}, {"bk#", ""}, {"bk##", ""}, {"DDR", ""}, {"fsg", ""},
         {"sec", ""}, {"devinfo", ""}, {"userstore", ""}, {"misc", ""}, {"keystore", ""}, {"config", ""},
         {"persistent", ""}, {"dbi", ""}, {"cache", ""}, {"apps_log", ""}, {"dpo", ""}, {"apdp", ""},
         {"msadp", ""}, {"mdtpsecapp", ""}, {"toolsfv", ""}, {"dip", ""}, {"sti", ""}, {"mdtp", ""},
@@ -16,8 +16,11 @@
     }
 
     Public strNoBakParts() As String = {"userdata"}
-    Public strReadOnly() As String = {"modem", "fsg", "DDR", "sec", "aboot", "abootbak",
-                                      "boot", "recovery", "devinfo", "system", "splash"}
+    Public strNoReadOnly() As String = {
+        "switch", "ssd", "keystore", "frp", "misc", "logfs",
+        "oops", "persist", "recovery", "cache", "userdata", "fsc",
+        "modemst#", "bk#", "bk##", "sbl#", "rpm", "hyp",
+        "userstore", "cache", "config", "oem", "persistent", "countrycode"}
     Public sectorSize As Int64
 
     Public Structure Partition
@@ -42,19 +45,18 @@
 
     Public Function selectBackupName(strPartName As String) As String
         Dim i As Int32
-        If strPartName Like "bk##" Or strPartName Like "bk#" Then Return ""
         For i = 0 To UBound(strPartNames, 1)
-            If strPartName = strPartNames(i, 0) Or strPartName = strPartNames(i, 0) & "bak" Then Return strPartNames(i, 1)
+            If strPartName Like strPartNames(i, 0) Or strPartName Like strPartNames(i, 0) & "bak" Then Return strPartNames(i, 1)
         Next
         Return strPartName & ".img"
     End Function
 
     Public Function selectReadOnly(strPartName As String) As Boolean
         Dim i As Int32
-        For i = 0 To UBound(strReadOnly)
-            If strPartName = strReadOnly(i) Then Return True
+        For i = 0 To UBound(strNoReadOnly)
+            If strPartName Like strNoReadOnly(i) Or strPartName Like strNoReadOnly(i) & "bak" Then Return False
         Next
-        Return False
+        Return True
     End Function
 
 End Module

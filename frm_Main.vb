@@ -104,10 +104,13 @@
                         Else
                             .backupIt = selectBackup(.Label)
                         End If
-                        .sparsed = False
                         If .backupIt And (tmp_g_result(6) = "8300" Or tmp_g_result(6) = "0700") Then .sparsed = True
                         .isReadOnly = selectReadOnly(.Label)
-                        .typeGUID = CutStr(RunCommand(adbExe, "shell sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum)), "Partition GUID code: ", " (")
+                        If .Label <> "last_parti" Then
+                            .typeGUID = CutStr(RunCommand(adbExe, "shell sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum)), "Partition GUID code: ", " (")
+                        Else
+                            .typeGUID = "00000000-0000-0000-0000-000000000000"
+                        End If
                     End With
                     AddLogInvoke("读取到: " & tmp_g_result(1) &
                            " ,Label: " & tmp_g_result(7) &
@@ -141,20 +144,23 @@
                 RunCommand(adbExe,
                            "pull /dev/block/bootdevice/by-name/" & part(i).Label & " """ &
                             savePath & part(i).bakFile & """")
+                If Not CheckFile(savePath & part(i).bakFile) Then
+                    AddLogInvoke("备份 " & part(i).Label & " 失败!", "W")
+                Else
+                    If part(i).sparsed Then
+                        AddLogInvoke("尝试稀疏化 " & part(i).bakFile, "D")
+                        RunCommand(sparseExe,
+                                   """" & savePath & part(i).bakFile & """ """ &
+                                   savePath & part(i).bakFile & ".sparse.img""")
 
-                If part(i).sparsed Then
-                    AddLogInvoke("尝试稀疏化 " & part(i).bakFile, "D")
-                    RunCommand(sparseExe,
-                               """" & savePath & part(i).bakFile & """ """ &
-                               savePath & part(i).bakFile & ".sparse.img""")
-
-                    If CheckFile(savePath & part(i).bakFile & ".sparse.img") Then
-                        IO.File.Delete(savePath & part(i).bakFile)
-                        IO.File.Move(savePath & part(i).bakFile & ".sparse.img",
-                                 savePath & part(i).bakFile)
-                    Else
-                        AddLogInvoke("稀疏化失败 " & part(i).bakFile, "W")
-                        part(i).sparsed = False
+                        If CheckFile(savePath & part(i).bakFile & ".sparse.img") Then
+                            IO.File.Delete(savePath & part(i).bakFile)
+                            IO.File.Move(savePath & part(i).bakFile & ".sparse.img",
+                                     savePath & part(i).bakFile)
+                        Else
+                            AddLogInvoke("稀疏化失败 " & part(i).bakFile, "W")
+                            part(i).sparsed = False
+                        End If
                     End If
                 End If
 pEnd1:
