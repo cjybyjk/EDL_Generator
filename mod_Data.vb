@@ -16,6 +16,7 @@
     }
 
     Public strNoBakParts() As String = {"userdata"}
+    Public strBootable() As String = {"sbl1"}
     Public strNoReadOnly() As String = {
         "switch", "ssd", "keystore", "frp", "misc", "logfs",
         "oops", "persist", "recovery", "cache", "userdata", "fsc",
@@ -57,6 +58,14 @@
             If strPartName Like strNoReadOnly(i) Or strPartName Like strNoReadOnly(i) & "bak" Then Return False
         Next
         Return True
+    End Function
+
+    Public Function selectBootable(strPartName As String) As Boolean
+        Dim i As Int32
+        For i = 0 To UBound(strBootable)
+            If strPartName Like strBootable(i) Then Return True
+        Next
+        Return False
     End Function
 
 End Module

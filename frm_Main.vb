@@ -61,9 +61,7 @@
         End If
         If InStr(RunCommand(adbExe, "shell "" ls /sbin/sgdisk || echo 'no sgdisk' """), "no sgdisk") > 0 Then
             AddLogInvoke("将sgdisk程序推送到设备中...")
-            Dim devBit As String = "_arm"
-            If InStr(RunCommand(adbExe, "shell ""getprop ro.product.cpu.abi"""), "arm64") > 0 Then devBit = "_arm64"
-            RunCommand(adbExe, "push """ & sgdiskBin & devBit & """ /sbin/sgdisk")
+            RunCommand(adbExe, "push """ & sgdiskBin & """ /sbin/sgdisk")
             RunCommand(adbExe, "shell ""chmod 0755 /sbin/sgdisk""")
         End If
         Dim writer As New Xml.XmlTextWriter(savePath & "partition.xml", System.Text.Encoding.GetEncoding("utf-8"))
@@ -98,6 +96,7 @@
                         .start_Sector = Convert.ToInt64(tmp_g_result(2))
                         .end_Sector = Convert.ToInt64(tmp_g_result(3))
                         .Label = tmp_g_result(7)
+                        .bootable = selectBootable(.Label)
                         .bakFile = selectBackupName(.Label)
                         If .bakFile = "" Then
                             .backupIt = False
@@ -107,7 +106,7 @@
                         If .backupIt And (tmp_g_result(6) = "8300" Or tmp_g_result(6) = "0700") Then .sparsed = True
                         .isReadOnly = selectReadOnly(.Label)
                         If .Label <> "last_parti" Then
-                            .typeGUID = CutStr(RunCommand(adbExe, "shell sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum)), "Partition GUID code: ", " (")
+                            .typeGUID = CutStr(RunCommand(adbExe, "shell /sbin/sgdisk --info=" & num_gResult - flagStartAdd + 1 & " " & disk(diskNum)), "Partition GUID code: ", " (")
                         Else
                             .typeGUID = "00000000-0000-0000-0000-000000000000"
                         End If
@@ -176,6 +175,7 @@ pEnd1:
                     .WriteAttributeString("label", part(i).Label)
                     .WriteAttributeString("size_in_kb", (part(i).end_Sector - part(i).start_Sector + 1) * sectorSize \ 1024)
                     .WriteAttributeString("type", part(i).typeGUID)
+                    .WriteAttributeString("sparse", part(i).sparsed)
                     .WriteAttributeString("bootable", LCase(part(i).bootable))
                     .WriteAttributeString("readonly", LCase(part(i).isReadOnly))
                     .WriteAttributeString("filename", part(i).bakFile)
@@ -192,6 +192,12 @@ pEnd1:
             .Close()
         End With
 
+        If cSahara.Checked Then
+            ' ongoing
+            AddLogInvoke("使用Sahara协议，生成 msimage 文件...")
+
+        End If
+
         AddLogInvoke("使用高通方案脚本生成需要的文件...")
         Me.Invoke(New SetProgD(AddressOf SetProgMax), UBound(disk))
         Me.Invoke(New SetProgD(AddressOf SetProg), 0)
@@ -201,7 +207,7 @@ pEnd1:
         Next
         Me.Invoke(New SetProgD(AddressOf SetProg), 0)
 
-        AddLogInvoke("复制firehose到输出文件夹...")
+        AddLogInvoke("复制二进制文件到输出文件夹...")
         IO.File.Copy(txt_firehose.Text, savePath & IO.Path.GetFileName(txt_firehose.Text), True)
 
         Me.Invoke(New SetProgStyleD(AddressOf SetProgStyle), ProgressBarStyle.Blocks)
@@ -222,8 +228,8 @@ pEnd:
             AddLog("未指定Sector size,使用默认值!" & vbCrLf, "W")
         End If
         If CheckFile(txt_firehose.Text) = False Then
-            AddLog("找不到firehose,停止!" & vbCrLf, "E")
-            MsgBox("找不到firehose!", vbCritical + vbSystemModal)
+            AddLog("找不到二进制文件,停止!" & vbCrLf, "E")
+            MsgBox("找不到二进制文件!", vbCritical + vbSystemModal)
             Exit Sub
         End If
         dlg_folder.ShowDialog()
